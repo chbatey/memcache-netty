@@ -1,5 +1,5 @@
 package info.batey.netty;
 
-public enum Command {
+public enum CommandType {
     GET, SET
 }

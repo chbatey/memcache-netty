@@ -1,5 +1,7 @@
-package info.batey.netty;
+package info.batey.netty.handlers;
 
+import info.batey.netty.MemcacheSetMessage;
+import info.batey.netty.MemcacheStorage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,13 +12,18 @@ public class SetHandler extends ChannelHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SetHandler.class);
 
+    private final MemcacheStorage memcacheStorage;
+
+    public SetHandler(MemcacheStorage memcacheStorage) {
+        this.memcacheStorage = memcacheStorage;
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        MemcacheMessage memcacheMessage = (MemcacheMessage) msg;
-        LOGGER.debug("Received memcache message {}", memcacheMessage);
+        MemcacheSetMessage memcacheSetMessage = (MemcacheSetMessage) msg;
+        LOGGER.debug("Received memcache message {}", memcacheSetMessage);
         ByteBuf buffer = ctx.alloc().buffer();
         buffer.writeBytes("STORED\r\n".getBytes());
         ctx.writeAndFlush(buffer);
-
     }
 }

@@ -1,5 +1,6 @@
 package info.batey.netty;
 
+import info.batey.netty.handlers.HandlerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -14,11 +15,14 @@ public class MemcacheDecoder extends ReplayingDecoder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MemcacheDecoder.class);
 
+    private final HandlerFactory handlerFactory;
+
+    public MemcacheDecoder(HandlerFactory handlerFactory) {
+        this.handlerFactory = handlerFactory;
+    }
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-//        int readableBytes = in.readableBytes();
-//        byte[] bytes = new byte[readableBytes];
-//        in.readBytes(bytes);
 
         int bytesToTake = in.bytesBefore((byte) ' ');
         String command = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
@@ -45,11 +49,11 @@ public class MemcacheDecoder extends ReplayingDecoder {
         in.readByte();
 
 
-        MemcacheMessage get = new MemcacheMessage(Command.GET, key, 0, 0, 0);
+        MemcacheGetMessage get = new MemcacheGetMessage();
         LOGGER.debug("Handling get message {}", get);
         out.add(get);
         ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.addLast(new GetHandler());
+        pipeline.addLast(handlerFactory.createHandler(CommandType.GET));
     }
 
     private void handleSetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
@@ -70,9 +74,9 @@ public class MemcacheDecoder extends ReplayingDecoder {
         Integer number = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
         in.readByte();
 
-        out.add(new MemcacheMessage(Command.SET, key, flags, ttl, number));
+        out.add(new MemcacheSetMessage(key, flags, ttl, number));
 
         ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.addLast(new SetHandler());
+        pipeline.addLast(handlerFactory.createHandler(CommandType.SET));
     }
 }

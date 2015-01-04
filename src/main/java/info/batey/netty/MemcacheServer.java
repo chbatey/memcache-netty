@@ -1,5 +1,6 @@
 package info.batey.netty;
 
+import info.batey.netty.handlers.HandlerFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -27,7 +28,7 @@ public class MemcacheServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new MemcacheDecoder());
+                            ch.pipeline().addLast(new MemcacheDecoder(new HandlerFactory(null)));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

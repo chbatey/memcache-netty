@@ -1,23 +1,17 @@
 package info.batey.netty;
 
-public class MemcacheMessage {
+public class MemcacheSetMessage {
     //todo change to enum
-    private final Command command;
     private final String key;
     private final int flags;
     private final int ttl;
     private final int numberOfBytes;
 
-    public MemcacheMessage(Command command, String key, int flags, int ttl, int numberOfBytes) {
-        this.command = command;
+    public MemcacheSetMessage(String key, int flags, int ttl, int numberOfBytes) {
         this.key = key;
         this.flags = flags;
         this.ttl = ttl;
         this.numberOfBytes = numberOfBytes;
-    }
-
-    public Command getCommand() {
-        return command;
     }
 
     public String getKey() {
@@ -38,9 +32,8 @@ public class MemcacheMessage {
 
     @Override
     public String toString() {
-        return "MemcacheMessage{" +
-                "command='" + command + '\'' +
-                ", key='" + key + '\'' +
+        return "MemcacheSetMessage{" +
+                "key='" + key + '\'' +
                 ", flags=" + flags +
                 ", ttl=" + ttl +
                 ", numberOfBytes=" + numberOfBytes +
