@@ -4,14 +4,14 @@ import info.batey.netty.handlers.HandlerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class MemcacheDecoder extends ReplayingDecoder {
+public class MemcacheDecoder extends ByteToMessageDecoder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MemcacheDecoder.class);
 
@@ -25,6 +25,9 @@ public class MemcacheDecoder extends ReplayingDecoder {
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 
         int bytesToTake = in.bytesBefore((byte) ' ');
+        if (bytesToTake == -1) {
+            return;
+        }
         String command = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
         in.readByte();
 
@@ -44,9 +47,8 @@ public class MemcacheDecoder extends ReplayingDecoder {
     private void handleGetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
         LOGGER.debug("Handling get message");
         int bytesToTake;
-        bytesToTake = in.bytesBefore((byte) '\r');
+        bytesToTake = in.readableBytes();
         String key = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
-        in.readByte();
 
 
         MemcacheGetMessage get = new MemcacheGetMessage();
@@ -70,9 +72,8 @@ public class MemcacheDecoder extends ReplayingDecoder {
         Integer ttl = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
         in.readByte();
 
-        bytesToTake = in.bytesBefore((byte) '\r');
-        Integer number = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
-        in.readByte();
+        bytesToTake = in.readableBytes();
+        Integer number = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()).trim());
 
         out.add(new MemcacheSetMessage(key, flags, ttl, number));
 

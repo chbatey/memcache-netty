@@ -9,6 +9,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
 
 public class MemcacheServer {
 
@@ -28,6 +30,7 @@ public class MemcacheServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(300, Delimiters.lineDelimiter()));
                             ch.pipeline().addLast(new MemcacheDecoder(new HandlerFactory(null)));
                         }
                     })
