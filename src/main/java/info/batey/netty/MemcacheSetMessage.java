@@ -1,17 +1,21 @@
 package info.batey.netty;
 
+import java.util.Arrays;
+
 public class MemcacheSetMessage {
     //todo change to enum
     private final String key;
     private final int flags;
     private final int ttl;
     private final int numberOfBytes;
+    private final byte[] data;
 
-    public MemcacheSetMessage(String key, int flags, int ttl, int numberOfBytes) {
+    public MemcacheSetMessage(String key, int flags, int ttl, int numberOfBytes, byte[] data) {
         this.key = key;
         this.flags = flags;
         this.ttl = ttl;
         this.numberOfBytes = numberOfBytes;
+        this.data = data;
     }
 
     public String getKey() {
@@ -30,6 +34,10 @@ public class MemcacheSetMessage {
         return ttl;
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
     @Override
     public String toString() {
         return "MemcacheSetMessage{" +
@@ -37,6 +45,7 @@ public class MemcacheSetMessage {
                 ", flags=" + flags +
                 ", ttl=" + ttl +
                 ", numberOfBytes=" + numberOfBytes +
+                ", data=" + Arrays.toString(data) +
                 '}';
     }
 }

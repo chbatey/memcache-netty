@@ -1,34 +1,24 @@
 package info.batey.netty;
 
-import info.batey.netty.handlers.HandlerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.ReplayingDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class MemcacheDecoder extends ByteToMessageDecoder {
+public class MemcacheDecoder extends ReplayingDecoder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MemcacheDecoder.class);
 
-    private final HandlerFactory handlerFactory;
-
-    public MemcacheDecoder(HandlerFactory handlerFactory) {
-        this.handlerFactory = handlerFactory;
-    }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 
         int bytesToTake = in.bytesBefore((byte) ' ');
-        if (bytesToTake == -1) {
-            return;
-        }
-        String command = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
+        String command = in.readBytes(bytesToTake).toString(Charset.defaultCharset()).trim();
         in.readByte();
 
         switch (command) {
@@ -37,8 +27,11 @@ public class MemcacheDecoder extends ByteToMessageDecoder {
                 break;
             }
             case "set": {
-            handleSetMessage(in, out, ctx);
+                handleSetMessage(in, out, ctx);
                 break;
+            }
+            default: {
+                throw new RuntimeException("Unexpected command: |" + command + "|");
             }
         }
 
@@ -47,15 +40,13 @@ public class MemcacheDecoder extends ByteToMessageDecoder {
     private void handleGetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
         LOGGER.debug("Handling get message");
         int bytesToTake;
-        bytesToTake = in.readableBytes();
+        bytesToTake = in.bytesBefore((byte) '\r');
         String key = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
+        in.readByte();
 
-
-        MemcacheGetMessage get = new MemcacheGetMessage();
+        MemcacheGetMessage get = new MemcacheGetMessage(key);
         LOGGER.debug("Handling get message {}", get);
         out.add(get);
-        ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.addLast(handlerFactory.createHandler(CommandType.GET));
     }
 
     private void handleSetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
@@ -72,12 +63,16 @@ public class MemcacheDecoder extends ByteToMessageDecoder {
         Integer ttl = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
         in.readByte();
 
-        bytesToTake = in.readableBytes();
+        bytesToTake = in.bytesBefore((byte) '\r');
         Integer number = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()).trim());
+        in.readByte(); // the \r
+        in.readByte(); // the \n
 
-        out.add(new MemcacheSetMessage(key, flags, ttl, number));
+        byte[] data = new byte[number];
+        in.readBytes(data);
+        in.readByte(); // the \r
+        in.readByte(); // the \n
 
-        ChannelPipeline pipeline = ctx.pipeline();
-        pipeline.addLast(handlerFactory.createHandler(CommandType.SET));
+        out.add(new MemcacheSetMessage(key, flags, ttl, number, data));
     }
 }

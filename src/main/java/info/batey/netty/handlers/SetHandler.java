@@ -1,14 +1,16 @@
 package info.batey.netty.handlers;
 
+import info.batey.netty.MemcacheGetMessage;
 import info.batey.netty.MemcacheSetMessage;
 import info.batey.netty.MemcacheStorage;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SetHandler extends ChannelHandlerAdapter {
+public class SetHandler extends SimpleChannelInboundHandler<MemcacheSetMessage> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SetHandler.class);
 
@@ -19,10 +21,14 @@ public class SetHandler extends ChannelHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        MemcacheSetMessage memcacheSetMessage = (MemcacheSetMessage) msg;
+    protected void messageReceived(ChannelHandlerContext ctx, MemcacheSetMessage memcacheSetMessage) throws Exception {
         LOGGER.debug("Received memcache message {}", memcacheSetMessage);
-        ByteBuf buffer = ctx.alloc().buffer();
+
+        MemcacheStorage.Value value = new MemcacheStorage.Value(memcacheSetMessage.getData(), memcacheSetMessage.getKey(), memcacheSetMessage.getTtl());
+        memcacheStorage.store(value);
+
+        ByteBufAllocator alloc = ctx.alloc();
+        ByteBuf buffer = alloc.buffer();
         buffer.writeBytes("STORED\r\n".getBytes());
         ctx.writeAndFlush(buffer);
     }

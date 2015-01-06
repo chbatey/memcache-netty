@@ -1,6 +1,7 @@
 package info.batey.netty;
 
-import info.batey.netty.handlers.HandlerFactory;
+import info.batey.netty.handlers.GetHandler;
+import info.batey.netty.handlers.SetHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,6 +12,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 
 public class MemcacheServer {
 
@@ -26,19 +28,22 @@ public class MemcacheServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class) // (3)
-                    .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(300, Delimiters.lineDelimiter()));
-                            ch.pipeline().addLast(new MemcacheDecoder(new HandlerFactory(null)));
+//                            ch.pipeline().addLast(new LineBasedFrameDecoder(Integer.MAX_VALUE));
+                            MemcacheStorageImpl memcacheStorage = new MemcacheStorageImpl();
+                            ch.pipeline().addLast(new MemcacheDecoder());
+                            ch.pipeline().addLast(new SetHandler(memcacheStorage));
+                            ch.pipeline().addLast(new GetHandler(memcacheStorage));
                         }
                     })
-                    .option(ChannelOption.SO_BACKLOG, 128)          // (5)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(port).sync(); // (7)
+            ChannelFuture f = b.bind(port).sync();
 
             // Wait until the server socket is closed.
             // In this example, this does not happen, but you can do that to gracefully
