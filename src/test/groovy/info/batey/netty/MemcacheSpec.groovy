@@ -12,6 +12,7 @@ class MemcacheSpec extends Specification {
 
 
     def setup() {
+//        Socket socket = new Socket("192.168.2.2", 11211)
         Socket socket = new Socket("localhost", 9090)
         inputStream = new DataInputStream(socket.inputStream)
         outputStream = socket.outputStream

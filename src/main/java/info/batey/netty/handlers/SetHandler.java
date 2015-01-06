@@ -1,6 +1,5 @@
 package info.batey.netty.handlers;
 
-import info.batey.netty.MemcacheGetMessage;
 import info.batey.netty.MemcacheSetMessage;
 import info.batey.netty.MemcacheStorage;
 import io.netty.buffer.ByteBuf;
