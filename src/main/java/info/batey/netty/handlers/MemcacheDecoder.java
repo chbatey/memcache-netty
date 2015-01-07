@@ -1,5 +1,8 @@
-package info.batey.netty;
+package info.batey.netty.handlers;
 
+import info.batey.netty.messages.MemcacheGetMessage;
+import info.batey.netty.messages.MemcacheReplaceMessage;
+import info.batey.netty.messages.MemcacheSetMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
@@ -23,11 +26,15 @@ public class MemcacheDecoder extends ReplayingDecoder {
 
         switch (command) {
             case "get": {
-                handleGetMessage(in, out, ctx);
+                handleGetMessage(in, out);
                 break;
             }
             case "set": {
-                handleSetMessage(in, out, ctx);
+                handleSetMessage(in, out);
+                break;
+            }
+            case "replace": {
+                handleReplaceMessage(in, out);
                 break;
             }
             default: {
@@ -37,7 +44,34 @@ public class MemcacheDecoder extends ReplayingDecoder {
 
     }
 
-    private void handleGetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
+    private void handleReplaceMessage(ByteBuf in, List<Object> out) {
+        int bytesToTake;
+        bytesToTake = in.bytesBefore((byte) ' ');
+        String key = in.readBytes(bytesToTake).toString(Charset.defaultCharset());
+        in.readByte();
+
+        bytesToTake = in.bytesBefore((byte) ' ');
+        Integer flags = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
+        in.readByte();
+
+        bytesToTake = in.bytesBefore((byte) ' ');
+        Integer ttl = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()));
+        in.readByte();
+
+        bytesToTake = in.bytesBefore((byte) '\r');
+        Integer number = Integer.parseInt(in.readBytes(bytesToTake).toString(Charset.defaultCharset()).trim());
+        in.readByte(); // the \r
+        in.readByte(); // the \n
+
+        byte[] data = new byte[number];
+        in.readBytes(data);
+        in.readByte(); // the \r
+        in.readByte(); // the \n
+
+        out.add(new MemcacheReplaceMessage(key, flags, ttl, data));
+    }
+
+    private void handleGetMessage(ByteBuf in, List<Object> out) {
         LOGGER.debug("Handling get message");
         int bytesToTake;
         bytesToTake = in.bytesBefore((byte) '\r');
@@ -49,7 +83,7 @@ public class MemcacheDecoder extends ReplayingDecoder {
         out.add(get);
     }
 
-    private void handleSetMessage(ByteBuf in, List<Object> out, ChannelHandlerContext ctx) {
+    private void handleSetMessage(ByteBuf in, List<Object> out) {
         int bytesToTake;
         bytesToTake = in.bytesBefore((byte) ' ');
         String key = in.readBytes(bytesToTake).toString(Charset.defaultCharset());

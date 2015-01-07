@@ -1,7 +1,8 @@
 package info.batey.netty.handlers;
 
-import info.batey.netty.MemcacheSetMessage;
-import info.batey.netty.MemcacheStorage;
+import info.batey.netty.messages.MemcacheSetMessage;
+import info.batey.netty.storage.MemcacheStorage;
+import info.batey.netty.storage.Value;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +24,7 @@ public class SetHandler extends SimpleChannelInboundHandler<MemcacheSetMessage> 
     protected void messageReceived(ChannelHandlerContext ctx, MemcacheSetMessage memcacheSetMessage) throws Exception {
         LOGGER.debug("Received memcache message {}", memcacheSetMessage);
 
-        MemcacheStorage.Value value = new MemcacheStorage.Value(memcacheSetMessage.getData(), memcacheSetMessage.getKey(), memcacheSetMessage.getTtl());
+        Value value = new Value(memcacheSetMessage.getData(), memcacheSetMessage.getKey(), memcacheSetMessage.getTtl());
         memcacheStorage.store(value);
 
         ByteBufAllocator alloc = ctx.alloc();

@@ -1,7 +1,9 @@
 package info.batey.netty.handlers;
 
-import info.batey.netty.MemcacheGetMessage;
-import info.batey.netty.MemcacheStorage;
+import info.batey.netty.messages.MemcacheGetMessage;
+import info.batey.netty.storage.Key;
+import info.batey.netty.storage.MemcacheStorage;
+import info.batey.netty.storage.Value;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -22,7 +24,7 @@ public class GetHandler extends SimpleChannelInboundHandler<MemcacheGetMessage> 
     protected void messageReceived(ChannelHandlerContext ctx, MemcacheGetMessage memcacheGetMessage) throws Exception {
         LOGGER.debug("Received memcache message {}", memcacheGetMessage);
 
-        MemcacheStorage.Value retrieve = memcacheStorage.retrieve(new MemcacheStorage.Key(memcacheGetMessage.getKey()));
+        Value retrieve = memcacheStorage.retrieve(new Key(memcacheGetMessage.getKey()));
 
         ByteBuf buffer = ctx.alloc().buffer();
         if (retrieve != null) {

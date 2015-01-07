@@ -1,9 +1,8 @@
-package info.batey.netty;
+package info.batey.netty.messages;
 
 import java.util.Arrays;
 
 public class MemcacheSetMessage {
-    //todo change to enum
     private final String key;
     private final int flags;
     private final int ttl;

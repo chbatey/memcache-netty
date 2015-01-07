@@ -1,4 +1,4 @@
-package info.batey.netty;
+package info.batey.netty.messages;
 
 public class MemcacheGetMessage {
     private final String key;

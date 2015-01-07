@@ -1,7 +1,9 @@
 package info.batey.netty.handlers;
 
-import info.batey.netty.MemcacheGetMessage;
-import info.batey.netty.MemcacheStorage;
+import info.batey.netty.messages.MemcacheGetMessage;
+import info.batey.netty.storage.Key;
+import info.batey.netty.storage.MemcacheStorage;
+import info.batey.netty.storage.Value;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -71,8 +73,8 @@ public class GetHandlerTest {
         String key = "batey";
         MemcacheGetMessage message = new MemcacheGetMessage(key);
         byte[] data = new byte[] {1,2,3,4};
-        MemcacheStorage.Value value = new MemcacheStorage.Value(data, key, 0);
-        given(memcacheStorage.retrieve(any(MemcacheStorage.Key.class))).willReturn(value);
+        Value value = new Value(data, key, 0);
+        given(memcacheStorage.retrieve(any(Key.class))).willReturn(value);
 
         //when
         underTest.messageReceived(context, message);
