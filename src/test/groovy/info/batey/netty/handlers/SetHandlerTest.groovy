@@ -1,6 +1,7 @@
 package info.batey.netty.handlers
 
 import info.batey.netty.messages.MemcacheSetMessage
+import info.batey.netty.messages.StorageCommand
 import info.batey.netty.storage.MemcacheStorage
 import info.batey.netty.storage.Value
 import io.netty.buffer.ByteBuf
@@ -20,7 +21,7 @@ class SetHandlerTest extends Specification {
         def underTest = new SetHandler(memcacheStorage)
         byte[] data = [1,2]
         def key = "batey"
-        def memcacheMessage = new MemcacheSetMessage(key, 0, 0, 100, data);
+        def memcacheMessage = new MemcacheSetMessage(new StorageCommand(key, 0, 0, data));
 
         when:
         underTest.messageReceived(contextMock, memcacheMessage)

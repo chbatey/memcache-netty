@@ -124,7 +124,7 @@ class MemcacheSpec extends Specification {
 
     private byte[] getDataForKey(String key) {
         outputStream.write("get ${key}\r\n".getBytes())
-        def valueLine = new ValieLine(inputStream.readLine())
+        def valueLine = new ValueLine(inputStream.readLine())
         byte[] dataBack = new byte[valueLine.numberOfBytes]
         inputStream.read(dataBack)
         inputStream.readLine()
@@ -132,12 +132,12 @@ class MemcacheSpec extends Specification {
         return dataBack
     }
 
-    private static class ValieLine {
+    private static class ValueLine {
         private final String key;
         private final String flags;
         private final int numberOfBytes;
 
-        ValieLine(String line) {
+        ValueLine(String line) {
             String[] array = line.split(" ");
             key = array[1]
             flags = array[2]
