@@ -1,7 +1,7 @@
 package info.batey.netty.handlers;
 
-import info.batey.netty.messages.MemcacheReplaceMessage;
-import info.batey.netty.messages.StorageCommand;
+import info.batey.netty.messages.MemcacheAddMessage;
+import info.batey.netty.messages.MemcacheStorageMessage;
 import info.batey.netty.storage.MemcacheStorage;
 import info.batey.netty.storage.Value;
 import io.netty.buffer.ByteBuf;
@@ -18,9 +18,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddHandlerTest {
+public class OptionalStorageHandlerTest {
 
-    private AddHandler underTest;
+    private OptionalStorageHandler underTest;
 
     @Mock
     private MemcacheStorage memcacheStorage;
@@ -36,7 +36,7 @@ public class AddHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        this.underTest = new AddHandler(memcacheStorage);
+        this.underTest = new OptionalStorageHandler<>(MemcacheAddMessage.class, memcacheStorage);
         given(ctx.alloc()).willReturn(alloc);
         given(alloc.buffer()).willReturn(buffer);
     }
@@ -45,7 +45,7 @@ public class AddHandlerTest {
     public void shouldStoreMessageIfNotAlreadyPresent() throws Exception {
         String key = "exists";
         byte[] data = {123};
-        MemcacheAddMessage message = new MemcacheAddMessage(new StorageCommand(key, 0, 0, data));
+        MemcacheAddMessage message = new MemcacheAddMessage(new MemcacheStorageMessage(key, 0, 0, data));
         given(memcacheStorage.add(any(Value.class))).willReturn(true);
 
         //when
@@ -60,7 +60,7 @@ public class AddHandlerTest {
     @Test
     public void shouldNotStoreIfAlreadyStored() throws Exception {
         //given
-        MemcacheAddMessage message = new MemcacheAddMessage(new StorageCommand("notexist", 0, 0, new byte[] {123}));
+        MemcacheAddMessage message = new MemcacheAddMessage(new MemcacheStorageMessage("notexist", 0, 0, new byte[] {123}));
         given(memcacheStorage.add(any(Value.class))).willReturn(false);
 
         //when

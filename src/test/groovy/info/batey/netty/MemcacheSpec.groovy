@@ -140,6 +140,25 @@ class MemcacheSpec extends Specification {
         dataBack == bytes
     }
 
+    def "add should not store the value if it does already exist"() {
+        given:
+        def key = "there"
+        byte[] oldBytes = [1, 2]
+        byte[] newBytes = [3, 4]
+        sendDataForKey(key, oldBytes)
+
+        when:
+        outputStream.write("add ${key} 0 100 2\r\n".getBytes())
+        outputStream.write(newBytes)
+        outputStream.write("\r\n".getBytes())
+        def line = inputStream.readLine()
+        def dataBack = getDataForKey(key)
+
+        then:
+        line == "NOT_STORED"
+        dataBack == oldBytes
+    }
+
     private byte[] getDataForKey(String key) {
         outputStream.write("get ${key}\r\n".getBytes())
         def valueLine = new ValueLine(inputStream.readLine())

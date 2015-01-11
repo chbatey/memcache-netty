@@ -1,7 +1,7 @@
 package info.batey.netty.handlers;
 
 import info.batey.netty.messages.MemcacheReplaceMessage;
-import info.batey.netty.messages.StorageCommand;
+import info.batey.netty.messages.MemcacheStorageMessage;
 import info.batey.netty.storage.MemcacheStorage;
 import info.batey.netty.storage.Value;
 import io.netty.buffer.ByteBuf;
@@ -44,7 +44,7 @@ public class ReplaceHandlerTest {
     @Test
     public void shouldNotStoreNewKey() throws Exception {
         //given
-        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new StorageCommand("notexist", 0, 0, new byte[] {123}));
+        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new MemcacheStorageMessage("notexist", 0, 0, new byte[] {123}));
 
         //when
         underTest.messageReceived(ctx, message);
@@ -60,7 +60,7 @@ public class ReplaceHandlerTest {
         //given
         String key = "exists";
         byte[] data = {123};
-        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new StorageCommand(key, 0, 0, data));
+        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new MemcacheStorageMessage(key, 0, 0, data));
         given(memcacheStorage.replace(any(Value.class))).willReturn(true);
 
         //when

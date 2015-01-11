@@ -24,7 +24,8 @@ public class MemcacheStorageImpl implements MemcacheStorage {
     }
 
     @Override
-    public boolean add(Value any) {
-        return false;
+    public boolean add(Value value) {
+        Value existingValue = cache.putIfAbsent(Key.forName(value.getKey()), value);
+        return existingValue == null;
     }
 }

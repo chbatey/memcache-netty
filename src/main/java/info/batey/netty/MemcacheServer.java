@@ -1,9 +1,7 @@
 package info.batey.netty;
 
-import info.batey.netty.handlers.GetHandler;
-import info.batey.netty.handlers.MemcacheDecoder;
-import info.batey.netty.handlers.ReplaceHandler;
-import info.batey.netty.handlers.SetHandler;
+import info.batey.netty.handlers.*;
+import info.batey.netty.messages.MemcacheAddMessage;
 import info.batey.netty.storage.MemcacheStorageImpl;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -37,6 +35,7 @@ public class MemcacheServer implements Runnable {
                             ch.pipeline().addLast(new SetHandler(memcacheStorage));
                             ch.pipeline().addLast(new GetHandler(memcacheStorage));
                             ch.pipeline().addLast(new ReplaceHandler(memcacheStorage));
+                            ch.pipeline().addLast(new OptionalStorageHandler<>(MemcacheAddMessage.class, memcacheStorage));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
