@@ -18,9 +18,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ReplaceHandlerTest {
+public class AddHandlerTest {
 
-    private ReplaceHandler underTest;
+    private AddHandler underTest;
 
     @Mock
     private MemcacheStorage memcacheStorage;
@@ -36,32 +36,17 @@ public class ReplaceHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        underTest = new ReplaceHandler(memcacheStorage);
+        this.underTest = new AddHandler(memcacheStorage);
         given(ctx.alloc()).willReturn(alloc);
         given(alloc.buffer()).willReturn(buffer);
     }
 
     @Test
-    public void shouldNotStoreNewKey() throws Exception {
-        //given
-        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new StorageCommand("notexist", 0, 0, new byte[] {123}));
-
-        //when
-        underTest.messageReceived(ctx, message);
-
-        //then
-        verify(ctx).alloc();
-        verify(buffer).writeBytes("NOT_STORED\r\n".getBytes());
-        verify(ctx).writeAndFlush(buffer);
-    }
-
-    @Test
-    public void shouldStorePreviouslySetKey() throws Exception {
-        //given
+    public void shouldStoreMessageIfNotAlreadyPresent() throws Exception {
         String key = "exists";
         byte[] data = {123};
-        MemcacheReplaceMessage message = new MemcacheReplaceMessage(new StorageCommand(key, 0, 0, data));
-        given(memcacheStorage.replace(any(Value.class))).willReturn(true);
+        MemcacheAddMessage message = new MemcacheAddMessage(new StorageCommand(key, 0, 0, data));
+        given(memcacheStorage.add(any(Value.class))).willReturn(true);
 
         //when
         underTest.messageReceived(ctx, message);
@@ -72,5 +57,18 @@ public class ReplaceHandlerTest {
         verify(ctx).writeAndFlush(buffer);
     }
 
+    @Test
+    public void shouldNotStoreIfAlreadyStored() throws Exception {
+        //given
+        MemcacheAddMessage message = new MemcacheAddMessage(new StorageCommand("notexist", 0, 0, new byte[] {123}));
+        given(memcacheStorage.add(any(Value.class))).willReturn(false);
 
+        //when
+        underTest.messageReceived(ctx, message);
+
+        //then
+        verify(ctx).alloc();
+        verify(buffer).writeBytes("NOT_STORED\r\n".getBytes());
+        verify(ctx).writeAndFlush(buffer);
+    }
 }

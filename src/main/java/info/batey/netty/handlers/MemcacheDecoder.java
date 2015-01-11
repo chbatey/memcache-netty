@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.Charset;
 import java.util.List;
 
+//todo: checkout the embedded transport for testing this
 public class MemcacheDecoder extends ReplayingDecoder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MemcacheDecoder.class);
@@ -37,6 +38,10 @@ public class MemcacheDecoder extends ReplayingDecoder {
                 handleReplaceMessage(in, out);
                 break;
             }
+            case "add": {
+                handleAddMessafe(in, out);
+                break;
+            }
             default: {
                 throw new RuntimeException("Unexpected command: |" + command + "|");
             }
@@ -54,6 +59,12 @@ public class MemcacheDecoder extends ReplayingDecoder {
         MemcacheGetMessage get = new MemcacheGetMessage(key);
         LOGGER.debug("Handling get message {}", get);
         out.add(get);
+    }
+
+    private void handleAddMessafe(ByteBuf in, List<Object> out) {
+        LOGGER.debug("Handling add method");
+        StorageCommand storageCommand = readStorageCommand(in);
+        out.add(new MemcacheAddMessage(storageCommand));
     }
 
     private void handleReplaceMessage(ByteBuf in, List<Object> out) {

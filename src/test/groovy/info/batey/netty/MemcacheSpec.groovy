@@ -122,6 +122,24 @@ class MemcacheSpec extends Specification {
         dataBack == replacedBytes
     }
 
+    def "add should store the value if it doesn't already exist"() {
+        given:
+        def key = "there"
+        byte[] bytes = [1, 2]
+
+        when:
+        outputStream.write("add ${key} 0 100 2\r\n".getBytes())
+        outputStream.write(bytes)
+        outputStream.write("\r\n".getBytes())
+        def line = inputStream.readLine()
+        println(line)
+        def dataBack = getDataForKey(key)
+
+        then:
+        line == "STORED"
+        dataBack == bytes
+    }
+
     private byte[] getDataForKey(String key) {
         outputStream.write("get ${key}\r\n".getBytes())
         def valueLine = new ValueLine(inputStream.readLine())

@@ -22,4 +22,9 @@ public class MemcacheStorageImpl implements MemcacheStorage {
         Value replaced = cache.replace(Key.forName(value.getKey()), value);
         return replaced != null;
     }
+
+    @Override
+    public boolean add(Value any) {
+        return false;
+    }
 }
