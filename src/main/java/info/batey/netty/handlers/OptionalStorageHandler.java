@@ -10,23 +10,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
+import java.util.function.Function;
 
 public class OptionalStorageHandler<T extends MemcacheStorageMessage> extends SimpleChannelInboundHandler<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OptionalStorageHandler.class);
 
-    private final MemcacheStorage memcacheStorage;
+    private final Function<Value, Boolean> optionalStore;
 
-    public OptionalStorageHandler(Class<? extends T> clazz, MemcacheStorage memcacheStorage) {
+    public OptionalStorageHandler(Class<? extends T> clazz, Function<Value, Boolean> optionalStore) {
         super(clazz, true);
-        this.memcacheStorage = memcacheStorage;
+        this.optionalStore = optionalStore;
     }
 
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, T msg) throws Exception {
         LOGGER.debug("Received add message {}", msg);
         ByteBuf buffer = ctx.alloc().buffer();
-        if (memcacheStorage.add(new Value(msg.getData(), msg.getKey(), msg.getTtl()))) {
+        if (optionalStore.apply(new Value(msg.getData(), msg.getKey(), msg.getTtl()))) {
             buffer.writeBytes("STORED\r\n".getBytes(Charset.forName("UTF-8")));
         } else {
             buffer.writeBytes("NOT_STORED\r\n".getBytes(Charset.forName("UTF-8")));

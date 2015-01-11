@@ -36,7 +36,7 @@ public class OptionalStorageHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        this.underTest = new OptionalStorageHandler<>(MemcacheAddMessage.class, memcacheStorage);
+        this.underTest = new OptionalStorageHandler<>(MemcacheAddMessage.class, memcacheStorage::add);
         given(ctx.alloc()).willReturn(alloc);
         given(alloc.buffer()).willReturn(buffer);
     }
