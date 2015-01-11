@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class OptionalStorageHandlerTest {
 
-    private OptionalStorageHandler underTest;
+    private OptionalStorageHandler<MemcacheAddMessage> underTest;
 
     @Mock
     private MemcacheStorage memcacheStorage;
